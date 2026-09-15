@@ -58,45 +58,7 @@ The backend is fully serverless, using Amazon Cognito for authentication, API Ga
 
 ## Architecture
 
-```
-                     ┌──────────────────────┐
-                     │    VaultHR Web UI    │
-                     └──────────┬───────────┘
-                                │
-                                │  Cognito authentication
-                                ▼
-                     ┌──────────────────────┐
-                     │    Amazon Cognito    │
-                     │  Employee / Manager  │
-                     │      HR_Admin        │
-                     └──────────┬───────────┘
-                                │  JWT
-                                ▼
-                     ┌──────────────────────┐
-                     │    API Gateway       │
-                     │    REST API          │
-                     │  Cognito Authorizer  │
-                     └──────────┬───────────┘
-                                │
-           ┌────────────────────┼────────────────────┐
-           │                    │                    │
-           ▼                    ▼                    ▼
-   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-   │  uploadDoc   │    │  listDocs    │    │ downloadDoc  │
-   │   Lambda     │    │   Lambda     │    │   Lambda     │
-   └──────┬───────┘    └──────┬───────┘    └──────┬───────┘
-          │                   │                   │
-          │        ┌──────────┘                   │
-          │        │                              │
-          ▼        ▼                              ▼
-   ┌─────────────────┐                  ┌─────────────────┐
-   │   Amazon S3     │                  │   DynamoDB      │
-   │  Documents +    │                  │  Metadata +     │
-   │   Versions      │                  │  Audit Log      │
-   └─────────────────┘                  └─────────────────┘
-
-                AWS X-Ray / CloudWatch — Observability
-```
+![Architecture Diagram](architecture%20diagram/WhatsApp%20Image%202026-09-16%20at%2000.51.29.jpeg)
 
 ---
 
