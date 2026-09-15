@@ -1,0 +1,82 @@
+name: Employee Document Vault CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    name: Run Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+  deploy:
+    name: Deploy Lambda Functions
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Package Lambda functions
+        run: |
+          cd lambda
+
+          zip -j deleteDocument.zip deleteDocument/lambda_function.py
+          zip -j downloadDocument.zip downloadDocument/lambda_function.py
+          zip -j listDocuments.zip listDocuments/lambda_function.py
+          zip -j uploadDocument.zip uploadDocument/lambda_function.py
+
+      - name: Deploy deleteDocument
+        run: |
+          aws lambda update-function-code \
+            --function-name deleteDocument \
+            --zip-file fileb://lambda/deleteDocument.zip
+
+      - name: Deploy downloadDocument
+        run: |
+          aws lambda update-function-code \
+            --function-name downloadDocument \
+            --zip-file fileb://lambda/downloadDocument.zip
+
+      - name: Deploy listDocuments
+        run: |
+          aws lambda update-function-code \
+            --function-name listDocuments \
+            --zip-file fileb://lambda/listDocuments.zip
+
+      - name: Deploy uploadDocument
+        run: |
+          aws lambda update-function-code \
+            --function-name uploadDocument \
+            --zip-file fileb://lambda/uploadDocument.zip
